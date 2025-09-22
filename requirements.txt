@@ -1,1 +1,5 @@
-streamlit
+streamlit==1.30.0
+requests==2.31.0
+python-dotenv==1.0.0
+numpy==1.26.4; sys_platform == 'darwin' or sys_platform == 'linux'
+numpy==1.26.4; sys_platform == 'win32' and python_version < '3.12'
