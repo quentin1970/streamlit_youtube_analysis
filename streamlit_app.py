@@ -165,19 +165,40 @@ def main():
     # Get API key from environment or secrets
     api_key = None
     
-    # Try to get from environment variables first
+    # Method 1: Try to get from environment variables
     try:
         import os
         api_key = os.getenv('YOUTUBE_API_KEY')
-    except:
-        pass
-        
-    # If not in environment, try to get from secrets
+        if api_key:
+            st.sidebar.success("API key loaded from environment variables")
+    except Exception as e:
+        st.sidebar.warning(f"Environment variable error: {str(e)}")
+    
+    # Method 2: Try to get from secrets.toml
     if not api_key:
         try:
-            api_key = st.secrets.get("YOUTUBE_API_KEY")
-        except:
-            pass
+            # This is a safer way to access secrets that won't fail if secrets.toml doesn't exist
+            if hasattr(st, 'secrets') and 'secrets' in st:
+                api_key = st['secrets'].get('YOUTUBE_API_KEY')
+                if api_key:
+                    st.sidebar.success("API key loaded from secrets.toml")
+        except Exception as e:
+            st.sidebar.warning("Could not load API key from secrets.toml")
+    
+    # Method 3: Try direct file read as last resort
+    if not api_key:
+        try:
+            import os
+            secrets_path = os.path.join(os.path.dirname(__file__), '.streamlit', 'secrets.toml')
+            if os.path.exists(secrets_path):
+                import toml
+                with open(secrets_path, 'r') as f:
+                    secrets = toml.load(f)
+                    api_key = secrets.get('secrets', {}).get('YOUTUBE_API_KEY')
+                    if api_key:
+                        st.sidebar.success("API key loaded from file")
+        except Exception as e:
+            st.sidebar.warning("Could not load API key from file")
     
     if not api_key:
         st.error("""
